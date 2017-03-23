@@ -1,0 +1,16 @@
+@*
+* Imports & view variables
+*@
+@(name: String)
+
+@main("Pokemon not found") {
+    <div class="jumbotron">
+        <div class="container">
+            <h1>404 Pokemon not found</h1>
+            <p class="lead">You tried : @name</p><br>
+            <p><a class="btn btn-primary btn-lg" href="@routes.SearchController.index()" role="button">
+                <span class="glyphicon glyphicon-backward"></span>&nbsp;Back to search page
+            </a></p>
+        </div>
+    </div>
+}

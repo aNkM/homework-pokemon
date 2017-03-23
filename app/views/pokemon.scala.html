@@ -1,0 +1,129 @@
+@*
+* Imports & view variables
+*@
+@(
+        imgURL: String,
+        name: String,
+        xp: Int,
+        types: Seq[((String, String), Int)],
+        abilities: Seq[((String, String), Int)],
+        stats: Seq[((String, String), Int)],
+        listTweets: play.api.libs.json.JsArray,
+        refreshTweetsDelay: Int,
+        postTweets: Call
+)
+
+@main("Pokemon info") {
+
+    <div class="jumbotron">
+        <div class="container" style="text-align: center; border-bottom: 20px;">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="content">
+                        <h1>@name</h1>
+                        <h3>Base XP : @xp</h3>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="content bg-alt">
+                        <img src=@imgURL>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" style="text-align: center">
+        <div class="row">
+            <div class="col-sm-4">
+                <ul>Stats :
+                    @for(pokemonStat <- stats) {
+                        <li>
+                            @pokemonStat._1._1 : @pokemonStat._2
+                        </li>
+                    }
+                </ul>
+            </div>
+            <div class="col-sm-4">
+                <ul>Abilities :
+                @for(pokemonAbility <- abilities) {
+                    <li>
+                        @pokemonAbility._1._1 : @pokemonAbility._2
+                    </li>
+                }
+                </ul>
+            </div>
+            <div class="col-sm-4">
+                <ul>Types :
+                    @for(pokemonType <- types) {
+                        <li>
+                            @pokemonType._1._1 : @pokemonType._2
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <hr/>
+    <div class="container">
+        <h3 class="title-tweets"></h3>
+        <ul class="tweets"></ul>
+    </div>
+
+    <div class="container" style="text-align: center">
+        <hr>
+        <footer>
+            <a class="btn btn-success" id="bookmark-this" href="#" rel="sidebar" title="@name">
+                <span class="glyphicon glyphicon-bookmark"></span>&nbsp;Bookmark this page
+            </a>
+            <a class="btn btn-primary" href="@routes.SearchController.index()">
+                <span class="glyphicon glyphicon-backward"></span>&nbsp;Back to search page
+            </a>
+        </footer>
+    </div>
+
+
+    <script>
+        function get_Tweets() {
+            $.ajax({
+                url: "@postTweets.toString()",
+                data: JSON.stringify(window.location.pathname.substring(1)),
+                method: "post",
+                contentType: "application/json",
+                success: function(data){
+                    var dt = new Date();
+                    var time = dt.getHours() + "h" + (dt.getMinutes()<10?'0':'') + dt.getMinutes();
+                    $(".tweets").empty();
+                    $(".title-tweets").empty();
+                    $(".title-tweets").append(data.length+" pokemon's tweets found (updated at "+time+") :");
+                    for(var i = 0; i < data.length; i++) {
+                        $(".tweets").append(
+                            "<li>At " + data[i].created_at.split('+',1) + "<br/>" +
+                            "From <strong>" + data[i].user.name + "</strong>" +
+                            " - <a href='https://twitter.com/"+ data[i].user.screen_name +"'>@@" +
+                            data[i].user.screen_name + "</a><br/>" + data[i].text +
+                            " <a href='https://twitter.com/"+ data[i].user.screen_name +"/status/"+
+                            data[i].id_str +"'>(Go to tweet)</a> - "+ "</li>"
+                        );
+                    }}
+            });
+        }
+
+        $(document).ready(function() {
+            get_Tweets();
+            setInterval(function(){get_Tweets();}, @refreshTweetsDelay);
+
+            $("#bookmark-this").click(function() {
+                if (window.sidebar) { // Mozilla Firefox Bookmark
+                    window.sidebar.addPanel(location.href,document.title,"");
+                } else if(window.external) { // IE Favorite
+                    window.external.AddFavorite(location.href,document.title); }
+                else if(window.opera && window.print) { // Opera Hotlist
+                    this.title=document.title;
+                    return true;
+                }
+            });
+        });
+    </script>
+}

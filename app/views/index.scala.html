@@ -1,0 +1,66 @@
+@*
+ * View variables
+ *@
+@(list: Seq[(String, String)], postSearch: Call)(implicit req: RequestHeader)
+
+@main("Search pokemon") {
+
+    <div class="jumbotron">
+        <div class="container">
+            <h1>Homework Pokemon</h1>
+            <p class="lead">This web application is designed with <a href="https://www.playframework.com/">Play Framework 2.5</a>, <a href="https://jquery.com/">jQuery</a> and <a href="https://getbootstrap.com">Bootstrap CSS</a>.<br>
+                You can search pokemons by name and access their latest informations & tweets.<br>
+            <p><a class="btn btn-primary btn-lg" href="http://pokeapi.co" role="button">Learn more about POKEApi &raquo;</a></p>
+        </div>
+    </div>
+
+    <div class="container" style="text-align: center; border-bottom: 20px;">
+        <h2>@list.length pokemons available !</h2><br/>
+        <span>Go to &nbsp; &nbsp;:</span>
+        <input type="text" id="luckySearchField" placeholder="Pokemon name"><br/>
+
+        <span>Search :</span>
+        <input type="text" id="searchField" placeholder="Pokemon name"><br/>
+
+        <h3 class="searchResultsTitle"></h3>
+        <ul class="searchResults"></ul>
+    </div>
+
+    <div class="container">
+        <hr>
+        <footer>
+            <p>Made by Maxime Fourcade.</p>
+        </footer>
+    </div>
+
+    <script>
+        $("#luckySearchField").on("keyup", function(e) {
+            if (e.keyCode != 13) return;
+            $(location).attr('href', "/" + this.value.toLowerCase())
+        });
+
+        $("#searchField").on("keyup", function(e) {
+            if (e.keyCode != 13) return;
+            if (this.value.length < 3) {
+                $(".searchResults").append("Pokemon's name must be at least 3 characters long !");
+            } else {
+                $.ajax({
+                    url: "@postSearch.toString()",
+                    data: JSON.stringify(this.value.toLowerCase()),
+                    method: "post",
+                    contentType: "application/json",
+                    success: function(data){
+                    $(".searchResultsTitle").empty();
+                    $(".searchResults").empty();
+                    $(".searchResultsTitle").append("<hr/>"+data.length+" pokemons found !");
+                    for(var i = 0; i < data.length; i++) {
+                        $(".searchResults").append(
+                            "<li><a href='"+ data[i].url + "'>" + data[i].name + "</a></li>"
+                        );
+                    }}
+                });
+            }
+        });
+    </script>
+}
+
